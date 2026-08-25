@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OmniVoice Studio — Hindi & English AI Voice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'Noto Sans Devanagari', 'sans-serif'],
+        display: ['Space Grotesk', 'Noto Sans Devanagari', 'sans-serif'],
+      },
+      colors: {
+        ink: '#05060f',
+        brand: { 50:'#f5f3ff',100:'#ede9fe',300:'#c4b5fd',400:'#a78bfa',500:'#8b5cf6',600:'#7c3aed',700:'#6d28d9',900:'#4c1d95' }
+      },
+      animation: { 'fade-up': 'fadeUp .55s cubic-bezier(.22,1,.36,1) both' },
+      keyframes: { fadeUp: { '0%': { opacity: 0, transform: 'translateY(14px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } } }
+    }
+  }
+}
+</script>
+<style>
+  * { -webkit-tap-highlight-color: transparent; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #263149; border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3b4a6b; }
+
+  .glass { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); backdrop-filter: blur(14px); }
+  .glass-hover { transition: border-color .25s, transform .25s, box-shadow .25s; }
+  .glass-hover:hover { border-color: rgba(139,92,246,.35); box-shadow: 0 8px 40px -12px rgba(139,92,246,.25); }
+
+  input[type=range] { -webkit-appearance:none; appearance:none; height:6px; border-radius:99px; outline:none; cursor:pointer;
+    background: linear-gradient(to right,#8b5cf6 0%,#818cf8 var(--fill,50%),rgba(255,255,255,.09) var(--fill,50%)); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#fff;
+    border:3px solid #8b5cf6; box-shadow:0 0 0 5px rgba(139,92,246,.15),0 2px 10px rgba(0,0,0,.6); transition:transform .15s; }
+  input[type=range]::-webkit-slider-thumb:hover { transform:scale(1.2); }
+  input[type=range]::-moz-range-thumb { width:16px; height:16px; border-radius:50%; background:#fff; border:3px solid #8b5cf6; }
+
+  select { appearance:none; -webkit-appearance:none;
+    background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='m6 9 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat:no-repeat; background-position:right .7rem center; background-size:14px; padding-right:2.2rem !important; }
+  select option { background:#0b0f1c; color:#e2e8f0; }
+
+  .pane-enter { animation: paneIn .38s cubic-bezier(.22,1,.36,1); }
+  @keyframes paneIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+
+  .tag-pill { transition: all .15s ease; }
+  .tag-pill:hover { transform: translateY(-2px); }
+  .tag-pill:active { transform: translateY(0) scale(.96); }
+
+  .shine { position:relative; overflow:hidden; }
+  .shine::after { content:''; position:absolute; inset:0; background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.28) 50%,transparent 60%); transform:translateX(-130%); transition:transform .8s ease; }
+  .shine:hover::after { transform:translateX(130%); }
+
+  .toast { animation: toastIn .32s cubic-bezier(.22,1,.36,1); }
+  .toast-out { animation: toastOut .3s ease forwards; }
+  @keyframes toastIn { from { opacity:0; transform:translateX(28px) scale(.96); } to { opacity:1; transform:none; } }
+  @keyframes toastOut { to { opacity:0; transform:translateX(28px) scale(.96); } }
+
+  .preset-active { border-color: rgba(139,92,246,.6) !important; background: rgba(139,92,246,.1) !important; box-shadow: 0 0 0 1px rgba(139,92,246,.4), 0 8px 30px -10px rgba(139,92,246,.4); }
+
+  details summary::-webkit-details-marker { display:none; }
+</style>
+</head>
+<body class="bg-ink text-slate-100 min-h-screen font-sans flex flex-col selection:bg-brand-500 selection:text-white antialiased">
+
+<!-- Ambient Background -->
+<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+  <div class="absolute -top-48 -left-48 w-[560px] h-[560px] rounded-full bg-brand-600/20 blur-[150px]"></div>
+  <div class="absolute top-1/3 -right-48 w-[460px] h-[460px] rounded-full bg-indigo-600/15 blur-[150px]"></div>
+  <div class="absolute bottom-0 left-1/3 w-[420px] h-[420px] rounded-full bg-fuchsia-600/10 blur-[170px]"></div>
+  <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.022)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.022)_1px,transparent_1px)] bg-[size:54px_54px] [mask-image:radial-gradient(ellipse_at_top,black_25%,transparent_72%)]"></div>
+</div>
+
+<!-- Header -->
+<header class="sticky top-0 z-50 border-b border-white/[0.06] bg-ink/70 backdrop-blur-xl">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[68px] flex items-center justify-between">
+    <div class="flex items-center gap-3.5">
+      <div class="relative">
+        <div class="absolute inset-0 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-500 blur-md opacity-60"></div>
+        <div class="relative w-11 h-11 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-brand-500/30">
+          <i data-lucide="audio-lines" class="w-5 h-5 text-white"></i>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-lg font-bold font-display tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">OmniVoice Studio</h1>
+          <span class="hidden sm:inline-flex px-2 py-0.5 text-[10px] font-semibold bg-brand-500/10 text-brand-300 border border-brand-500/25 rounded-full">हिंदी • English</span>
+        </div>
+        <p class="text-[11px] text-slate-500">Zero-Shot Voice Cloning & Storytelling Studio</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <label class="hidden sm:flex items-center gap-2 cursor-pointer select-none" title="Simulate generation locally without backend">
+        <span class="text-[11px] font-medium text-slate-400">Demo Mode</span>
+        <input id="demo-toggle" type="checkbox" checked class="peer sr-only">
+        <span class="w-9 h-5 rounded-full bg-white/10 relative transition-colors peer-checked:bg-brand-500 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-4"></span>
+      </label>
+      <span class="inline-flex items-center px-3 py-1.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+        <span class="relative flex w-1.5 h-1.5 mr-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
+          <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
+        </span>
+        Engine Ready
+      </span>
+    </div>
+  </div>
+</header>
+
+<!-- Main -->
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-7">
+
+  <!-- Segmented Tabs -->
+  <div class="flex justify-center mb-8 animate-fade-up">
+    <div class="inline-flex p-1.5 rounded-2xl glass">
+      <button id="tab-btn-design" onclick="switchTab('design')" class="px-5 sm:px-7 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all duration-300 bg-gradient-to-r from-brand-600 to-indigo-600 text-white shadow-lg shadow-brand-500/30">
+        <i data-lucide="sparkles" class="w-4 h-4"></i><span class="hidden sm:inline">Voice Design & Story Studio</span><span class="sm:hidden">Design</span>
+      </button>
+      <button id="tab-btn-clone" onclick="switchTab('clone')" class="px-5 sm:px-7 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all duration-300 text-slate-400 hover:text-white">
+        <i data-lucide="fingerprint" class="w-4 h-4"></i><span class="hidden sm:inline">Voice Cloning</span><span class="sm:hidden">Clone</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+    <!-- LEFT: Forms -->
+    <div class="lg:col-span-7">
+
+      <!-- ============ PANE: DESIGN ============ -->
+      <div id="pane-design" class="space-y-5">
+
+        <!-- Presets -->
+        <div class="glass glass-hover rounded-3xl p-5 shadow-2xl shadow-black/40 animate-fade-up" style="animation-delay:.05s">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xs font-semibold uppercase tracking-widest text-slate-400 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-brand-500/15 flex items-center justify-center"><i data-lucide="wand-sparkles" class="w-3.5 h-3.5 text-brand-400"></i></span>
+              Storytelling & Character Presets
+            </h3>
+            <span class="text-[10px] text-slate-600 font-medium">Click to apply</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            <button type="button" onclick="applyPreset('mystery', this)" class="preset-card p-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.07] text-left transition-all duration-200 hover:-translate-y-0.5 group">
+              <div class="text-lg mb-1">🎙️</div>
+              <div class="text-xs font-semibold text-slate-200 group-hover:text-brand-300 transition-colors">Mystery Narrator</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Deep Crime & Suspense</div>
+            </button>
+            <button type="button" onclick="applyPreset('dadima', this)" class="preset-card p-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.07] text-left transition-all duration-200 hover:-translate-y-0.5 group">
+              <div class="text-lg mb-1">👵</div>
+              <div class="text-xs font-semibold text-slate-200 group-hover:text-brand-300 transition-colors">Dadi Ma Katha</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Warm & Affectionate</div>
+            </button>
+            <button type="button" onclick="applyPreset('mythological', this)" class="preset-card p-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.07] text-left transition-all duration-200 hover:-translate-y-0.5 group">
+              <div class="text-lg mb-1">👑</div>
+              <div class="text-xs font-semibold text-slate-200 group-hover:text-brand-300 transition-colors">Mythological</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Epic Hindi Storyteller</div>
+            </button>
+            <button type="button" onclick="applyPreset('kids', this)" class="preset-card p-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.07] text-left transition-all duration-200 hover:-translate-y-0.5 group">
+              <div class="text-lg mb-1">🧸</div>
+              <div class="text-xs font-semibold text-slate-200 group-hover:text-brand-300 transition-colors">Bal Kahani</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Playful & Animated</div>
+            </button>
+            <button type="button" onclick="applyPreset('horror', this)" class="preset-card p-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.07] text-left transition-all duration-200 hover:-translate-y-0.5 group">
+              <div class="text-lg mb-1">👻</div>
+              <div class="text-xs font-semibold text-slate-200 group-hover:text-brand-300 transition-colors">Horror Whispers</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Dark Suspense Whispering</div>
+            </button>
+            <button type="button" onclick="applyPreset('news', this)" class="preset-card p-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.07] text-left transition-all duration-200 hover:-translate-y-0.5 group">
+              <div class="text-lg mb-1">📻</div>
+              <div class="text-xs font-semibold text-slate-200 group-hover:text-brand-300 transition-colors">News / Host</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Clear Indian Accent</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Text Input -->
+        <div class="glass glass-hover rounded-3xl p-5 shadow-2xl shadow-black/40 space-y-4 animate-fade-up" style="animation-delay:.1s">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <label class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-brand-500/15 flex items-center justify-center"><i data-lucide="type" class="w-3.5 h-3.5 text-brand-400"></i></span>
+              Text to Synthesize
+            </label>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="fillSample('hi')" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-white/[0.04] hover:bg-brand-500/15 border border-white/[0.08] hover:border-brand-500/40 text-slate-300 hover:text-brand-300 transition-all">हिंदी Sample</button>
+              <button type="button" onclick="fillSample('en')" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-white/[0.04] hover:bg-brand-500/15 border border-white/[0.08] hover:border-brand-500/40 text-slate-300 hover:text-brand-300 transition-all">English Sample</button>
+              <span class="text-[11px] text-slate-500"><span id="vd-char-count">0</span> chars • <span id="vd-word-count">0</span> words</span>
+            </div>
+          </div>
+
+          <textarea id="vd-text" rows="5" placeholder="यहाँ अपनी हिंदी कहानी या संवाद लिखें... (उदा: एक समय की बात है, जंगल के राजा शेर ने एक सभा बुलाई...)"
+            class="w-full bg-black/40 border border-white/[0.08] rounded-2xl p-4 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500/60 focus:border-brand-500/40 text-[15px] leading-relaxed transition-all resize-y"></textarea>
+
+          <div>
+            <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+              <i data-lucide="smile" class="w-3 h-3 text-amber-400"></i> Insert Emotion & Dramatic Tags
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="insertTag('vd-text','[laughter]')" class="tag-pill px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-amber-500/20 text-amber-300 border border-white/[0.08] hover:border-amber-500/40 text-xs font-medium">😆 [laughter]</button>
+              <button type="button" onclick="insertTag('vd-text','[sigh]')" class="tag-pill px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-sky-500/20 text-sky-300 border border-white/[0.08] hover:border-sky-500/40 text-xs font-medium">😮‍💨 [sigh]</button>
+              <button type="button" onclick="insertTag('vd-text','[surprise-oh]')" class="tag-pill px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-purple-500/20 text-purple-300 border border-white/[0.08] hover:border-purple-500/40 text-xs font-medium">😲 [surprise-oh]</button>
+              <button type="button" onclick="insertTag('vd-text','[surprise-ah]')" class="tag-pill px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-pink-500/20 text-pink-300 border border-white/[0.08] hover:border-pink-500/40 text-xs font-medium">😱 [surprise-ah]</button>
+              <button type="button" onclick="insertTag('vd-text','[question-ah]')" class="tag-pill px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-emerald-500/20 text-emerald-300 border border-white/[0.08] hover:border-emerald-500/40 text-xs font-medium">❓ [question-ah]</button>
+              <button type="button" onclick="insertTag('vd-text','[question-oh]')" class="tag-pill px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-teal-500/20 text-teal-300 border border-white/[0.08] hover:border-teal-500/40 text-xs font-medium">❔ [question-oh]</button>
+              <button type="button" onclick="insertTag('vd-text','[dissatisfaction-hnn]')" class="tag-pill px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-rose-500/20 text-rose-300 border border-white/[0.08] hover:border-rose-500/40 text-xs font-medium">😤 [dissatisfaction-hnn]</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[11px] font-semibold text-slate-400 mb-1.5 flex items-center gap-1.5"><i data-lucide="languages" class="w-3 h-3 text-brand-400"></i>Language</label>
+            <select id="vd-lang" class="w-full bg-black/40 border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:ring-2 focus:ring-brand-500/60 focus:outline-none transition-all">
+              <option value="Auto" selected>Auto Detect</option>
+              <option value="Hindi">Hindi (हिंदी)</option>
+              <option value="English">English</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Voice Attributes -->
+        <div class="glass glass-hover rounded-3xl p-5 shadow-2xl shadow-black/40 animate-fade-up" style="animation-delay:.15s">
+          <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2 mb-4">
+            <span class="w-6 h-6 rounded-lg bg-brand-500/15 flex items-center justify-center"><i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-brand-400"></i></span>
+            Character Voice Attributes
+          </h3>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+            <div>
+              <label class="text-[11px] text-slate-400 mb-1.5 flex items-center gap-1"><i data-lucide="user" class="w-3 h-3 text-slate-500"></i>Gender</label>
+              <select id="vd-gender" class="w-full bg-black/40 border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-brand-500/60 focus:outline-none">
+                <option value="Auto">Auto</option><option value="Male">Male</option><option value="Female" selected>Female</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 mb-1.5 flex items-center gap-1"><i data-lucide="cake" class="w-3 h-3 text-slate-500"></i>Age</label>
+              <select id="vd-age" class="w-full bg-black/40 border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-brand-500/60 focus:outline-none">
+                <option value="Auto">Auto</option><option value="Child">Child</option><option value="Teenager">Teenager</option><option value="Young Adult" selected>Young Adult</option><option value="Middle-aged">Middle-aged</option><option value="Elderly">Elderly</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 mb-1.5 flex items-center gap-1"><i data-lucide="audio-lines" class="w-3 h-3 text-slate-500"></i>Pitch</label>
+              <select id="vd-pitch" class="w-full bg-black/40 border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-brand-500/60 focus:outline-none">
+                <option value="Auto" selected>Auto</option><option value="Very Low Pitch">Very Low</option><option value="Low Pitch">Low</option><option value="Moderate Pitch">Moderate</option><option value="High Pitch">High</option><option value="Very High Pitch">Very High</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400 mb-1.5 flex items-center gap-1"><i data-lucide="waves" class="w-3 h-3 text-slate-500"></i>Style</label>
+              <select id="vd-style" class="w-full bg-black/40 border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-brand-500/60 focus:outline-none">
+                <option value="Auto" selected>Auto (Normal)</option><option value="Whisper">Whisper (फुसफुसाना)</option>
+              </select>
+            </div>
+            <div class="col-span-2">
+              <label class="text-[11px] text-slate-400 mb-1.5 flex items-center gap-1"><i data-lucide="languages" class="w-3 h-3 text-slate-500"></i>English Accent</label>
+              <select id="vd-accent" class="w-full bg-black/40 border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-slate-200 focus:ring-2 focus:ring-brand-500/60 focus:outline-none">
+                <option value="Auto" selected>Auto</option><option value="Indian Accent">Indian</option><option value="American Accent">American</option><option value="British Accent">British</option><option value="Australian Accent">Australian</option><option value="Canadian Accent">Canadian</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Advanced Settings -->
+        <details class="group glass glass-hover rounded-3xl p-5 shadow-2xl shadow-black/40 animate-fade-up" style="animation-delay:.2s">
+          <summary class="cursor-pointer font-semibold text-sm text-slate-300 flex items-center justify-between list-none">
+            <span class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-brand-500/15 flex items-center justify-center"><i data-lucide="settings-2" class="w-3.5 h-3.5 text-brand-400"></i></span>
+              Advanced Generation Settings
+            </span>
+            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500 transition-transform duration-300 group-open:rotate-180"></i>
+          </summary>
+          <div class="mt-5 space-y-5 pt-5 border-t border-white/[0.06]">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+              <div>
+                <div class="flex justify-between text-[11px] text-slate-400 mb-2">
+                  <span class="flex items-center gap-1"><i data-lucide="gauge" class="w-3 h-3"></i>Speed</span>
+                  <span class="font-mono text-brand-300" id="vd-speed-val">1.00x</span>
+                </div>
+                <input id="vd-speed" type="range" min="0.5" max="1.5" step="0.05" value="1.0" oninput="document.getElementById('vd-speed-val').innerText = parseFloat(this.value).toFixed(2)+'x'">
+                <div class="flex justify-between text-[9px] text-slate-600 mt-1"><span>0.5x</span><span>0.9x stories</span><span>1.5x</span></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-[11px] text-slate-400 mb-2">
+                  <span class="flex items-center gap-1"><i data-lucide="cpu" class="w-3 h-3"></i>Inference Steps</span>
+                  <span class="font-mono text-brand-300" id="vd-steps-val">32</span>
+                </div>
+                <input id="vd-steps" type="range" min="8" max="64" step="1" value="32" oninput="document.getElementById('vd-steps-val').innerText = this.value">
+                <div class="flex justify-between text-[9px] text-slate-600 mt-1"><span>8 fast</span><span>64 HD</span></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-[11px] text-slate-400 mb-2">
+                  <span>Guidance Scale (CFG)</span>
+                  <span class="font-mono text-brand-300" id="vd-cfg-val">2.0</span>
+                </div>
+                <input id="vd-cfg" type="range" min="0" max="4" step="0.1" value="2.0" oninput="document.getElementById('vd-cfg-val').innerText = this.value">
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-2">Fixed Duration <span class="text-slate-600">(sec, optional)</span></label>
+                <input id="vd-duration" type="number" min="0" step="0.5" placeholder="Auto (leave empty)" class="w-full bg-black/40 border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-600 focus:ring-2 focus:ring-brand-500/60 focus:outline-none">
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-x-6 gap-y-3 pt-1">
+              <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                <input id="vd-denoise" type="checkbox" checked class="peer sr-only">
+                <span class="w-9 h-5 rounded-full bg-white/10 relative transition-colors peer-checked:bg-brand-500 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-4"></span>
+                <span class="text-xs text-slate-300">Denoise Audio</span>
+              </label>
+              <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                <input id="vd-preprocess" type="checkbox" checked class="peer sr-only">
+                <span class="w-9 h-5 rounded-full bg-white/10 relative transition-colors peer-checked:bg-brand-500 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-4"></span>
+                <span class="text-xs text-slate-300">Preprocess Prompt</span>
+              </label>
+              <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                <input id="vd-postprocess" type="checkbox" checked class="peer sr-only">
+                <span class="w-9 h-5 rounded-full bg-white/10 relative transition-colors peer-checked:bg-brand-500 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-4"></span>
+                <span class="text-xs text-slate-300">Trim Long Silences</span>
+              </label>
+            </div>
+          </div>
+        </details>
+
+        <!-- Generate Button -->
+        <button id="btn-generate-design" onclick="generateDesign()" class="shine w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-brand-600 via-violet-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-semibold text-[15px] shadow-xl shadow-brand-500/30 flex items-center justify-center gap-2.5 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none animate-fade-up" style="animation-delay:.25s">
+          <i data-lucide="play" class="w-5 h-5"></i>
+          <span>Generate Designed Voice</span>
+          <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md bg-white/15 border border-white/20 text-[10px] font-medium ml-1">Ctrl ↵</kbd>
+        </button>
+      </div>
+
+      <!-- ============ PANE: CLONE ============ -->
+      <div id="pane-clone" class="space-y-5 hidden">
+
+        <div class="glass glass-hover rounded-3xl p-5 shadow-2xl shadow-black/40 space-y-4">
+          <div class="flex items-center justify-between">
+            <label class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-brand-500/15 flex items-center justify-center"><i data-lucide="type" class="w-3.5 h-3.5 text-brand-400"></i></span>
+              Text to Synthesize with Cloned Voice
+            </label>
+            <span class="text-[11px] text-slate-500"><span id="vc-char-count">0</span> chars</span>
+          </div>
+
+          <textarea id="vc-text" rows="4" placeholder="यहाँ वह टेक्स्ट लिखें जिसे आप क्लोन की गई आवाज़ में कहलवाना चाहते हैं..."
+            class="w-full bg-black/40 border border-white/[0.08] rounded-2xl p-4 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500/60 focus:border-brand-500/40 text-[15px] leading-relaxed transition-all resize-y"></textarea>
+
+          <div>
+            <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+              <i data-lucide="smile" class="w-3 h-3 text-amber-400"></i> Insert Emotion Tags
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="insertTag('vc-text','[laughter]')" class="tag-pill px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-amber-500/20 text-amber-300 border border-white/[0.08] hover:border-amber-500/40 text-xs font-medium">😆 [laughter]</button>
+              <button type="button" onclick="insertTag('vc-text','[sigh]')" class="tag-pill px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-sky-500/20 text-sky-300 border border-white/[0.08] hover:border-sky-500/40 text-xs font-medium">😮‍💨 [sigh]</button>
+              <button type="button" onclick="insertTag('vc-text','[surprise-oh]')" class="tag-pill px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-purple-500/20 text-purple-300 border border-white/[0.08] hover:border-purple-500/40 text-xs font-medium">😲 [surprise-oh]</button>
+              <button type="button" onclick="insertTag('vc-text','[question-ah]')" class="tag-pill px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-emerald-500/20 text-emerald-300 border border-white/[0.08] hover:border-emerald-500/40 text-xs font-medium">❓ [question-ah]</button>
+              <button type="button" onclick="insertTag('vc-text','[dissatisfaction-hnn]')" class="tag-pill px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-rose-500/20 text-rose-300 border border-white/[0.08] hover:border-rose-500/40 text-xs font-medium">😤 [dissatisfaction-hnn]</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[11px] font-semibold text-slate-400 mb-1.5 flex items-center gap-1.5"><i data-lucide="languages" class="w-3 h-3 text-brand-400"></i>Language</label>
+            <select id="vc-lang" class="w-full bg-black/40 border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-slate-200 focus:ring-2 focus:ring-brand-500/60 focus:outline-none transition-all">
+              <option value="Auto" selected>Auto Detect</option>
+              <option value="Hindi">Hindi (हिंदी)</option>
+              <option value="English">English</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Reference Audio -->
+        <div class="glass glass-hover rounded-3xl p-5 shadow-2xl shadow-black/40 space-y-4">
+          <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-lg bg-brand-500/15 flex items-center justify-center"><i data-lucide="mic" class="w-3.5 h-3.5 text-brand-400"></i></span>
+            Reference Audio Sample
+            <span class="text-[10px] font-normal text-slate-500 ml-1">3–10 sec clean voice</span>
+          </h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div id="dropzone" class="relative border-2 border-dashed border-white/[0.1] hover:border-brand-500/50 rounded-2xl p-5 text-center cursor-pointer transition-all bg-black/30 hover:bg-brand-500/[0.04]">
+              <input type="file" id="vc-audio-file" accept="audio/*" onchange="handleAudioUpload(this)" class="absolute inset-0 opacity-0 cursor-pointer">
+              <i data-lucide="cloud-upload" class="w-7 h-7 mx-auto text-slate-500 mb-1.5"></i>
+              <p class="text-xs font-medium text-slate-300 truncate px-2" id="upload-file-name">Drop or Upload Audio</p>
+              <p class="text-[10px] text-slate-600 mt-0.5">.wav, .mp3, .m4a</p>
+            </div>
+
+            <div class="border border-white/[0.08] rounded-2xl p-5 text-center bg-black/30 flex flex-col items-center justify-center gap-2">
+              <button type="button" id="btn-record" onclick="toggleRecording()" class="px-4 py-2 rounded-xl bg-white/[0.05] hover:bg-rose-500/15 text-slate-200 hover:text-rose-300 border border-white/[0.1] hover:border-rose-500/40 text-xs font-semibold flex items-center gap-2 transition-all">
+                <span id="rec-dot" class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+                <span id="rec-text">Record from Mic</span>
+              </button>
+              <p id="rec-status" class="text-[10px] text-slate-600">Max 10 seconds sample</p>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[11px] font-semibold text-slate-300 block mb-1.5">Reference Text <span class="text-slate-600 font-normal">(what is spoken in the sample)</span></label>
+            <input type="text" id="vc-ref-text" placeholder="Type exact words spoken in the reference audio..."
+              class="w-full bg-black/40 border border-white/[0.08] rounded-xl px-4 py-2.5 text-xs text-slate-200 placeholder-slate-600 focus:ring-2 focus:ring-brand-500/60 focus:outline-none transition-all">
+            <p class="text-[10px] text-slate-600 mt-1.5 flex items-center gap-1"><i data-lucide="zap" class="w-3 h-3 text-amber-400"></i>Exact text drastically improves cloning accuracy.</p>
+          </div>
+        </div>
+
+        <button id="btn-generate-clone" onclick="generateClone()" class="shine w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-brand-600 via-violet-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-semibold text-[15px] shadow-xl shadow-brand-500/30 flex items-center justify-center gap-2.5 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
+          <span>Generate Cloned Voice</span>
+          <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md bg-white/15 border border-white/20 text-[10px] font-medium ml-1">Ctrl ↵</kbd>
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Output Studio -->
+    <div class="lg:col-span-5 space-y-5 lg:sticky lg:top-24">
+
+      <!-- Player Card -->
+      <div class="glass rounded-3xl p-5 shadow-2xl shadow-black/40 space-y-4 animate-fade-up" style="animation-delay:.1s">
+        <div class="flex items-center justify-between border-b border-white/[0.06] pb-3.5">
+          <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-lg bg-brand-500/15 flex items-center justify-center"><i data-lucide="volume-2" class="w-3.5 h-3.5 text-brand-400"></i></span>
+            Audio Studio Output
+          </h3>
+          <span id="status-badge" class="text-[10px] px-2.5 py-1 rounded-full font-semibold bg-white/[0.05] text-slate-400 border border-white/[0.08]">Ready</span>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="py-12 text-center space-y-3">
+          <div class="relative w-20 h-20 mx-auto">
+            <div class="absolute inset-0 rounded-full bg-brand-500/10 blur-xl"></div>
+            <div class="relative w-full h-full rounded-full border border-white/[0.08] bg-white/[0.02] flex items-center justify-center">
+              <i data-lucide="headphones" class="w-8 h-8 text-slate-600 stroke-[1.5]"></i>
+            </div>
+          </div>
+          <p class="text-xs font-semibold text-slate-400">No audio generated yet</p>
+          <p class="text-[11px] text-slate-600 max-w-[220px] mx-auto leading-relaxed">Enter text, pick a preset and hit Generate to hear the AI voice.</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="hidden py-10 text-center space-y-3">
+          <div class="w-16 h-16 mx-auto rounded-full bg-rose-500/10 border border-rose-500/25 flex items-center justify-center">
+            <i data-lucide="circle-alert" class="w-7 h-7 text-rose-400"></i>
+          </div>
+          <p class="text-xs font-semibold text-rose-300">Generation failed</p>
+          <p id="error-msg" class="text-[11px] text-slate-500 max-w-[240px] mx-auto">Something went wrong.</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-indicator" class="hidden py-10 text-center space-y-5">
+          <div class="relative w-[72px] h-[72px] mx-auto">
+            <div class="absolute inset-0 rounded-full bg-brand-500/30 blur-xl animate-pulse"></div>
+            <div class="absolute inset-0 rounded-full border-2 border-brand-500/15 border-t-brand-400 animate-spin"></div>
+            <div class="absolute inset-[14px] rounded-full bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-brand-500/40">
+              <i data-lucide="audio-lines" class="w-5 h-5 text-white"></i>
+            </div>
+          </div>
+          <div class="space-y-2.5">
+            <p class="text-xs font-semibold text-slate-200" id="load-step">Analyzing text…</p>
+            <div class="w-56 h-1.5 mx-auto rounded-full bg-white/[0.07] overflow-hidden">
+              <div id="load-bar-fill" class="h-full w-0 rounded-full bg-gradient-to-r from-brand-500 to-indigo-400 transition-all duration-500"></div>
+            </div>
+            <p class="text-[10px] text-slate-600">OmniVoice neural engine • 24 kHz HD synthesis</p>
+          </div>
+        </div>
+
+        <!-- Active Player -->
+        <div id="active-player" class="hidden space-y-4">
+          <audio id="main-audio" class="hidden"></audio>
+
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span id="track-mode" class="px-2 py-0.5 rounded-md bg-brand-500/15 text-brand-300 border border-brand-500/25 text-[10px] font-semibold">Voice Design</span>
+              <span class="px-2 py-0.5 rounded-md bg-white/[0.05] text-slate-400 border border-white/[0.08] text-[10px] font-semibold">24 kHz HD</span>
+              <span class="px-2 py-0.5 rounded-md bg-white/[0.05] text-slate-400 border border-white/[0.08] text-[10px] font-semibold">WAV</span>
+            </div>
+            <p id="track-title" class="text-[13px] text-slate-300 font-medium line-clamp-2 leading-snug">—</p>
+          </div>
+
+          <canvas id="wave-canvas" class="w-full h-16 rounded-xl bg-black/30 border border-white/[0.05]"></canvas>
+
+          <div class="flex items-center gap-3">
+            <button id="btn-play" onclick="togglePlay()" class="w-11 h-11 shrink-0 rounded-full bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-brand-500/40 hover:scale-105 active:scale-95 transition-transform">
+              <i data-lucide="play" id="icon-play" class="w-4.5 h-4.5 text-white ml-0.5 w-5 h-5"></i>
+              <i data-lucide="pause" id="icon-pause" class="w-5 h-5 text-white hidden"></i>
+            </button>
+            <span id="time-current" class="text-[11px] font-mono text-slate-400 w-9 text-right">0:00</span>
+            <div id="progress-track" class="flex-1 h-2 rounded-full bg-white/[0.08] cursor-pointer relative group">
+              <div id="progress-fill" class="absolute inset-y-0 left-0 w-0 rounded-full bg-gradient-to-r from-brand-500 to-indigo-400"></div>
+              <div id="progress-knob" class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 left-0 w-3.5 h-3.5 rounded-full bg-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            </div>
+            <span id="time-total" class="text-[11px] font-mono text-slate-400 w-9">0:00</span>
+          </div>
+
+          <a id="btn-download" href="#" download="omnivoice.wav" class="w-full py-2.5 px-4 rounded-xl bg-white/[0.05] hover:bg-white/[0.09] text-slate-200 font-medium text-xs flex items-center justify-center gap-2 border border-white/[0.1] hover:border-brand-500/40 transition-all">
+            <i data-lucide="download" class="w-4 h-4 text-brand-400"></i>
+            <span>Download Audio (WAV)</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- History Card -->
+      <div class="glass rounded-3xl p-5 shadow-2xl shadow-black/40 animate-fade-up" style="animation-delay:.15s">
+        <h3 class="text-xs font-semibold uppercase tracking-widest text-slate-400 flex items-center gap-2 mb-3">
+          <span class="w-6 h-6 rounded-lg bg-brand-500/15 flex items-center justify-center"><i data-lucide="history" class="w-3.5 h-3.5 text-brand-400"></i></span>
+          Recent Generations
+        </h3>
+        <div id="history-list" class="space-y-1 max-h-64 overflow-y-auto pr-1">
+          <div class="text-center py-6 text-[11px] text-slate-600">No generations yet — your clips will appear here.</div>
+        </div>
+      </div>
+
+      <!-- Tips Card -->
+      <div class="glass rounded-3xl p-5 shadow-2xl shadow-black/40 animate-fade-up" style="animation-delay:.2s">
+        <h3 class="text-xs font-semibold uppercase tracking-widest text-slate-400 flex items-center gap-2 mb-3">
+          <span class="w-6 h-6 rounded-lg bg-amber-500/15 flex items-center justify-center"><i data-lucide="lightbulb" class="w-3.5 h-3.5 text-amber-400"></i></span>
+          Pro Tips
+        </h3>
+        <ul class="space-y-2 text-[11px] text-slate-400 leading-relaxed">
+          <li class="flex gap-2"><span class="text-brand-400">•</span>Emotion tags को sentence के अंत में लगाएं — dramatic effect best आता है।</li>
+          <li class="flex gap-2"><span class="text-brand-400">•</span>Storytelling के लिए speed <span class="text-slate-200 font-medium">0.9x</span> और steps <span class="text-slate-200 font-medium">48+</span> रखें।</li>
+          <li class="flex gap-2"><span class="text-brand-400">•</span>Cloning के लिए noise-free 5–8 sec sample + exact reference text दें।</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="border-t border-white/[0.06] py-5 text-center mt-auto">
+  <p class="text-[11px] text-slate-600">OmniVoice Studio • Massively Multilingual Neural Speech Synthesis</p>
+  <p class="text-[10px] text-slate-700 mt-1 flex items-center justify-center gap-1.5"><i data-lucide="keyboard" class="w-3 h-3"></i>Press <kbd class="px-1 py-0.5 rounded bg-white/[0.06] border border-white/[0.08] text-slate-500">Ctrl+Enter</kbd> to generate</p>
+</footer>
+
+<!-- Toasts -->
+<div id="toasts" class="fixed top-20 right-4 z-[100] space-y-2 w-[calc(100%-2rem)] max-w-xs"></div>
+
+<script>
+lucide.createIcons();
+
+/* ---------------- State ---------------- */
+const $ = id => document.getElementById(id);
+let activeTab = 'design';
+let recordedBlob = null, mediaRecorder = null, audioChunks = [];
+let demoMode = true, generating = false;
+let historyItems = [], historyId = 0;
+
+const audio = $('main-audio');
+const escapeHtml = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = s => { if (!isFinite(s)) return '0:00'; const m = Math.floor(s/60), x = Math.floor(s%60); return m + ':' + String(x).padStart(2,'0'); };
+
+/* ---------------- Toasts ---------------- */
+function toast(msg, type = 'info') {
+  const conf = { success: ['emerald', 'check'], error: ['rose', 'circle-alert'], info: ['brand', 'info'] }[type] || ['brand', 'info'];
+  const el = document.createElement('div');
+  el.className = `toast flex items-start gap-2.5 p-3.5 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-${conf[0]}-500/30 shadow-2xl shadow-black/50`;
+  el.innerHTML = `<span class="w-6 h-6 shrink-0 rounded-lg bg-${conf[0]}-500/15 flex items-center justify-center"><i data-lucide="${conf[1]}" class="w-3.5 h-3.5 text-${conf[0]}-400"></i></span><p class="text-[11px] leading-snug text-slate-300 pt-0.5">${escapeHtml(msg)}</p>`;
+  $('toasts').appendChild(el);
+  lucide.createIcons();
+  setTimeout(() => { el.classList.add('toast-out'); setTimeout(() => el.remove(), 320); }, 3600);
+}
+
+/* ---------------- Tabs ---------------- */
+function switchTab(tab) {
+  activeTab = tab;
+  const act = 'px-5 sm:px-7 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all duration-300 bg-gradient-to-r from-brand-600 to-indigo-600 text-white shadow-lg shadow-brand-500/30';
+  const ina = 'px-5 sm:px-7 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all duration-300 text-slate-400 hover:text-white';
+  $('tab-btn-design').className = tab === 'design' ? act : ina;
+  $('tab-btn-clone').className = tab === 'clone' ? act : ina;
+  const show = tab === 'design' ? $('pane-design') : $('pane-clone');
+  const hide = tab === 'design' ? $('pane-clone') : $('pane-design');
+  hide.classList.add('hidden');
+  show.classList.remove('hidden');
+  show.classList.remove('pane-enter'); void show.offsetWidth; show.classList.add('pane-enter');
+  lucide.createIcons();
+}
+
+/* ---------------- Sliders ---------------- */
+function initSliders() {
+  document.querySelectorAll('input[type=range]').forEach(r => {
+    const upd = () => { const min = +r.min || 0, max = +r.max || 100; r.style.setProperty('--fill', ((+r.value - min) / (max - min) * 100) + '%'); };
+    r.addEventListener('input', upd); upd();
+  });
+}
+
+/* ---------------- Emotion Tags ---------------- */
+function insertTag(textareaId, tagVal) {
+  const ta = $(textareaId); if (!ta) return;
+  const s = ta.selectionStart, e = ta.selectionEnd, t = ta.value;
+  if (!t) { ta.value = tagVal; ta.focus(); updateCounters(); return; }
+  let pre = ' ', suf = ' ';
+  if (s === 0 || t[s-1] === ' ') pre = '';
+  if (e < t.length && t[e] === ' ') suf = '';
+  ta.value = t.slice(0, s) + pre + tagVal + suf + t.slice(e);
+  ta.selectionStart = ta.selectionEnd = s + pre.length + tagVal.length + suf.length;
+  ta.focus(); updateCounters();
+}
+
+/* ---------------- Samples ---------------- */
+function fillSample(lang) {
+  const hi = 'एक समय की बात है। [sigh] घने जंगल में एक शेर राजा रहता था। [surprise-oh] एक दिन उसने सभी जानवरों की बड़ी सभा बुलाई! [question-ah] क्या तुम सब वहाँ पहुँचोगे?';
+  const en = 'Once upon a time, [sigh] in a kingdom far beyond the mountains, there lived a young storyteller. [surprise-oh] One night, she discovered a voice that could change everything! [laughter]';
+  $('vd-text').value = lang === 'hi' ? hi : en;
+  updateCounters();
+  toast(lang === 'hi' ? 'Hindi sample loaded' : 'English sample loaded', 'info');
+}
+
+/* ---------------- Presets ---------------- */
+const presets = {
+  mystery:      { gender:'Male',   age:'Middle-aged', pitch:'Low Pitch',      style:'Auto',    accent:'Auto',           speed:0.90 },
+  dadima:       { gender:'Female', age:'Elderly',     pitch:'Moderate Pitch', style:'Auto',    accent:'Auto',           speed:0.92 },
+  mythological: { gender:'Male',   age:'Young Adult', pitch:'Moderate Pitch', style:'Auto',    accent:'Auto',           speed:0.95 },
+  kids:         { gender:'Female', age:'Young Adult', pitch:'High Pitch',     style:'Auto',    accent:'Auto',           speed:1.05 },
+  horror:       { gender:'Male',   age:'Middle-aged', pitch:'Low Pitch',      style:'Whisper', accent:'Auto',           speed:0.88 },
+  news:         { gender:'Female', age:'Young Adult', pitch:'Moderate Pitch', style:'Auto',    accent:'Indian Accent',  speed:1.00 },
+};
+function applyPreset(key, el) {
+  const p = presets[key]; if (!p) return;
+  $('vd-gender').value = p.gender; $('vd-age').value = p.age; $('vd-pitch').value = p.pitch;
+  $('vd-style').value = p.style; $('vd-accent').value = p.accent;
+  $('vd-speed').value = p.speed;
+  $('vd-speed').dispatchEvent(new Event('input'));
+  document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('preset-active'));
+  if (el) el.classList.add('preset-active');
+  toast('Preset applied — ' + el.querySelector('.text-xs').textContent, 'success');
+}
+
+/* ---------------- Counters ---------------- */
+function updateCounters() {
+  const vd = $('vd-text').value;
+  $('vd-char-count').textContent = vd.length;
+  $('vd-word-count').textContent = vd.trim() ? vd.trim().split(/\s+/).length : 0;
+  $('vc-char-count').textContent = $('vc-text').value.length;
+}
+$('vd-text').addEventListener('input', updateCounters);
+$('vc-text').addEventListener('input', updateCounters);
+
+/* ---------------- Reference Audio ---------------- */
+function handleAudioUpload(input) {
+  if (input.files && input.files[0]) {
+    $('upload-file-name').textContent = input.files[0].name;
+    $('dropzone').classList.add('border-emerald-500/50', 'bg-emerald-500/[0.04]');
+    recordedBlob = null;
+    toast('Reference audio attached', 'success');
+  }
+}
+const dz = $('dropzone');
+['dragover','dragenter'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('border-brand-500/60','bg-brand-500/[0.06]'); }));
+['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('border-brand-500/60','bg-brand-500/[0.06]'); }));
+dz.addEventListener('drop', e => {
+  if (e.dataTransfer.files.length) { $('vc-audio-file').files = e.dataTransfer.files; handleAudioUpload($('vc-audio-file')); }
+});
+
+async function toggleRecording() {
+  const dot = $('rec-dot'), txt = $('rec-text'), st = $('rec-status');
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+    dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-500';
+    txt.textContent = 'Record Again';
+    st.textContent = 'Sample recorded ✓';
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = () => {
+      recordedBlob = new Blob(audioChunks, { type: 'audio/wav' });
+      $('upload-file-name').textContent = 'Recorded Voice Sample';
+      stream.getTracks().forEach(t => t.stop());
+      toast('Voice sample recorded', 'success');
+    };
+    mediaRecorder.start();
+    dot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping';
+    txt.textContent = 'Recording… Stop';
+    st.textContent = 'Speak clearly into the mic';
+  } catch (err) {
+    toast('Microphone unavailable in this environment. Please upload a file instead.', 'error');
+  }
+}
+
+/* ---------------- Status ---------------- */
+function setStatus(state, msg = '') {
+  const badge = $('status-badge');
+  const views = { empty: $('empty-state'), loading: $('loading-indicator'), active: $('active-player'), error: $('error-state') };
+  Object.values(views).forEach(v => v.classList.add('hidden'));
+  if (state === 'loading') {
+    badge.className = 'text-[10px] px-2.5 py-1 rounded-full font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/25';
+    badge.textContent = 'Generating…';
+    views.loading.classList.remove('hidden');
+  } else if (state === 'success') {
+    badge.className = 'text-[10px] px-2.5 py-1 rounded-full font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25';
+    badge.textContent = 'Done';
+    views.active.classList.remove('hidden');
+    resizeWave();
+  } else if (state === 'error') {
+    badge.className = 'text-[10px] px-2.5 py-1 rounded-full font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/25';
+    badge.textContent = 'Error';
+    $('error-msg').textContent = msg || 'Something went wrong.';
+    views.error.classList.remove('hidden');
+  } else {
+    badge.className = 'text-[10px] px-2.5 py-1 rounded-full font-semibold bg-white/[0.05] text-slate-400 border border-white/[0.08]';
+    badge.textContent = 'Ready';
+    views.empty.classList.remove('hidden');
+  }
+}
+
+/* ---------------- Demo Synthesis (offline simulation) ---------------- */
+function writeStr(v, o, s) { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); }
+function encodeWAV(samples, sr) {
+  const buf = new ArrayBuffer(44 + samples.length * 2), v = new DataView(buf);
+  writeStr(v, 0, 'RIFF'); v.setUint32(4, 36 + samples.length * 2, true); writeStr(v, 8, 'WAVE');
+  writeStr(v, 12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  writeStr(v, 36, 'data'); v.setUint32(40, samples.length * 2, true);
+  let o = 44;
+  for (let i = 0; i < samples.length; i++, o += 2) { const s = Math.max(-1, Math.min(1, samples[i])); v.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7FFF, true); }
+  return new Blob([v], { type: 'audio/wav' });
+}
+function synthesizeDemoSpeech(text) {
+  const sr = 24000;
+  const words = Math.max(4, Math.min(26, text.trim().split(/\s+/).length));
+  const syl = 0.15, gap = 0.06, total = words * (syl + gap) + 0.5;
+  const buf = new Float32Array(Math.floor(sr * total));
+  const scale = [0, 3, 5, 7, 10, 12, 15];
+  const base = 140 + (text.length % 5) * 14;
+  for (let w = 0; w < words; w++) {
+    const start = 0.2 + w * (syl + gap);
+    const f0 = base * Math.pow(2, scale[w % scale.length] / 12);
+    const si = Math.floor(start * sr), len = Math.floor(syl * sr);
+    for (let i = 0; i < len && si + i < buf.length; i++) {
+      const t = i / sr, env = Math.sin(Math.PI * i / len);
+      const f = f0 * (1 + 0.02 * Math.sin(2 * Math.PI * 5.5 * t));
+      buf[si + i] += env * (0.34 * Math.sin(2*Math.PI*f*t) + 0.17 * Math.sin(2*Math.PI*f*2*t) + 0.08 * Math.sin(2*Math.PI*f*2.97*t) + 0.04 * Math.sin(2*Math.PI*f*4.1*t));
+    }
+  }
+  let peak = 0; for (const s of buf) peak = Math.max(peak, Math.abs(s));
+  if (peak > 0) for (let i = 0; i < buf.length; i++) buf[i] *= 0.8 / peak;
+  return URL.createObjectURL(encodeWAV(buf, sr));
+}
+async function simulateProgress() {
+  const steps = ['Analyzing text & emotion tags…','Encoding phonemes (हिंदी / English)…','Running neural diffusion steps…','Vocoding @ 24 kHz HD…','Finalizing & trimming audio…'];
+  const fill = $('load-bar-fill'), label = $('load-step');
+  for (let i = 0; i < steps.length; i++) {
+    label.textContent = steps[i];
+    fill.style.width = ((i + 1) / steps.length * 100) + '%';
+    await sleep(380 + Math.random() * 320);
+  }
+}
+
+/* ---------------- Generate ---------------- */
+function toggleGenButtons(dis) { $('btn-generate-design').disabled = dis; $('btn-generate-clone').disabled = dis; }
+
+async function generateDesign() {
+  if (generating) return;
+  const text = $('vd-text').value.trim();
+  if (!text) { toast('Please enter text to synthesize.', 'error'); $('vd-text').focus(); return; }
+  generating = true; toggleGenButtons(true); setStatus('loading');
+  try {
+    let url;
+    if (demoMode) {
+      await simulateProgress();
+      url = synthesizeDemoSpeech(text);
+    } else {
+      const payload = {
+        text, language: $('vd-lang').value, gender: $('vd-gender').value, age: $('vd-age').value,
+        pitch: $('vd-pitch').value, style: $('vd-style').value, accent: $('vd-accent').value,
+        speed: parseFloat($('vd-speed').value) || 1.0, num_step: parseInt($('vd-steps').value) || 32,
+        guidance_scale: parseFloat($('vd-cfg').value) || 2.0, duration: parseFloat($('vd-duration').value) || null,
+        denoise: $('vd-denoise').checked, preprocess_prompt: $('vd-preprocess').checked, postprocess_output: $('vd-postprocess').checked,
+      };
+      const res = await fetch('/api/generate/voice-design', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) throw new Error(data.error || 'Generation failed (HTTP ' + res.status + ')');
+      url = data.audio_url;
+    }
+    onAudioReady(url, { mode: 'Voice Design', text });
+  } catch (e) { setStatus('error', e.message); toast(e.message || 'Generation failed', 'error'); }
+  finally { generating = false; toggleGenButtons(false); }
+}
+
+async function generateClone() {
+  if (generating) return;
+  const text = $('vc-text').value.trim();
+  if (!text) { toast('Please enter text to synthesize.', 'error'); $('vc-text').focus(); return; }
+  const fileInput = $('vc-audio-file');
+  let fileToUpload = null;
+  if (recordedBlob) fileToUpload = new File([recordedBlob], 'mic_sample.wav', { type: 'audio/wav' });
+  else if (fileInput.files && fileInput.files[0]) fileToUpload = fileInput.files[0];
+  else { toast('Please upload or record a reference audio sample.', 'error'); return; }
+
+  generating = true; toggleGenButtons(true); setStatus('loading');
+  try {
+    let url;
+    if (demoMode) {
+      await simulateProgress();
+      url = synthesizeDemoSpeech(text);
+    } else {
+      const fd = new FormData();
+      fd.append('text', text); fd.append('ref_audio', fileToUpload);
+      fd.append('ref_text', $('vc-ref-text').value.trim()); fd.append('language', $('vc-lang').value);
+      fd.append('speed', $('vd-speed').value); fd.append('num_step', $('vd-steps').value);
+      fd.append('guidance_scale', $('vd-cfg').value); fd.append('denoise', $('vd-denoise').checked);
+      fd.append('preprocess_prompt', $('vd-preprocess').checked); fd.append('postprocess_output', $('vd-postprocess').checked);
+      const res = await fetch('/api/generate/voice-clone', { method: 'POST', body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) throw new Error(data.error || 'Cloning failed (HTTP ' + res.status + ')');
+      url = data.audio_url;
+    }
+    onAudioReady(url, { mode: 'Voice Clone', text });
+  } catch (e) { setStatus('error', e.message); toast(e.message || 'Cloning failed', 'error'); }
+  finally { generating = false; toggleGenButtons(false); }
+}
+
+/* ---------------- Player ---------------- */
+function onAudioReady(url, meta) {
+  audio.src = url;
+  $('btn-download').href = url;
+  $('btn-download').setAttribute('download', 'omnivoice-' + Date.now() + '.wav');
+  $('track-title').textContent = meta.text;
+  $('track-mode').textContent = meta.mode + (demoMode ? ' • Demo' : '');
+  setStatus('success');
+  addHistory(meta, url);
+  audio.play().catch(() => {});
+  toast('Audio generated successfully 🎧', 'success');
+}
+function togglePlay() { if (!audio.src) return; audio.paused ? audio.play().catch(()=>{}) : audio.pause(); }
+
+audio.addEventListener('play', () => { wave.playing = true; $('icon-play').classList.add('hidden'); $('icon-pause').classList.remove('hidden'); });
+audio.addEventListener('pause', () => { wave.playing = false; $('icon-play').classList.remove('hidden'); $('icon-pause').classList.add('hidden'); });
+audio.addEventListener('ended', () => { wave.playing = false; $('icon-play').classList.remove('hidden'); $('icon-pause').classList.add('hidden'); });
+audio.addEventListener('loadedmetadata', () => { $('time-total').textContent = fmt(audio.duration); });
+audio.addEventListener('timeupdate', () => {
+  $('time-current').textContent = fmt(audio.currentTime);
+  const pct = audio.duration ? (audio.currentTime / audio.duration * 100) : 0;
+  $('progress-fill').style.width = pct + '%';
+  $('progress-knob').style.left = pct + '%';
+});
+$('progress-track').addEventListener('click', e => {
+  const r = e.currentTarget.getBoundingClientRect();
+  if (audio.duration) audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
+});
+
+/* ---------------- Waveform ---------------- */
+const wave = { bars: [], ctx: null, canvas: null, playing: false, t: 0 };
+function initWave() {
+  wave.canvas = $('wave-canvas'); wave.ctx = wave.canvas.getContext('2d');
+  wave.bars = new Array(64).fill(4);
+  resizeWave(); window.addEventListener('resize', resizeWave);
+  requestAnimationFrame(waveLoop);
+}
+function resizeWave() {
+  const c = wave.canvas; if (!c || !c.clientWidth) return;
+  const d = window.devicePixelRatio || 1;
+  c.width = c.clientWidth * d; c.height = c.clientHeight * d;
+}
+function rr(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath(); ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function waveLoop() {
+  const { ctx, canvas, bars } = wave;
+  if (canvas && canvas.width > 0) {
+    wave.t += 0.055;
+    const w = canvas.width, h = canvas.height, n = bars.length, bw = w / n;
+    ctx.clearRect(0, 0, w, h);
+    for (let i = 0; i < n; i++) {
+      const target = wave.playing
+        ? (Math.abs(Math.sin(i * 0.32 + wave.t * 2.2)) * 0.7 + Math.abs(Math.sin(i * 0.11 - wave.t * 3.7)) * 0.3) * h * 0.82 + h * 0.08
+        : h * 0.07 + Math.abs(Math.sin(i * 0.5)) * h * 0.05;
+      bars[i] += (target - bars[i]) * 0.25;
+      const x = i * bw + bw * 0.25, bwid = bw * 0.5, y = (h - bars[i]) / 2;
+      if (wave.playing) {
+        const g = ctx.createLinearGradient(0, y, 0, y + bars[i]);
+        g.addColorStop(0, '#a78bfa'); g.addColorStop(1, '#6366f1');
+        ctx.fillStyle = g;
+      } else ctx.fillStyle = 'rgba(148,163,184,0.28)';
+      rr(ctx, x, y, bwid, bars[i], bwid / 2); ctx.fill();
+    }
+  }
+  requestAnimationFrame(waveLoop);
+}
+
+/* ---------------- History ---------------- */
+function addHistory(meta, url) {
+  historyItems.unshift({ id: ++historyId, mode: meta.mode, text: meta.text, url, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+  if (historyItems.length > 8) historyItems.pop();
+  renderHistory();
+}
+function renderHistory() {
+  const wrap = $('history-list');
+  if (!historyItems.length) { wrap.innerHTML = '<div class="text-center py-6 text-[11px] text-slate-600">No generations yet — your clips will appear here.</div>'; return; }
+  wrap.innerHTML = historyItems.map(h => `
+    <div class="group flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/[0.04] border border-transparent hover:border-white/[0.07] transition-all">
+      <button onclick="playHistory(${h.id})" class="w-8 h-8 shrink-0 rounded-lg bg-brand-500/12 text-brand-400 flex items-center justify-center hover:bg-brand-500/25 hover:scale-105 transition-all" title="Play">
+        <i data-lucide="play" class="w-3.5 h-3.5"></i>
+      </button>
+      <div class="min-w-0 flex-1">
+        <div class="text-xs text-slate-200 truncate">${escapeHtml(h.text)}</div>
+        <div class="text-[10px] text-slate-500 mt-0.5">${h.mode} • ${h.time}</div>
+      </div>
+      <button onclick="deleteHistory(${h.id})" class="opacity-0 group-hover:opacity-100 w-7 h-7 shrink-0 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 flex items-center justify-center transition-all" title="Delete">
+        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>`).join('');
+  lucide.createIcons();
+}
+function playHistory(id) {
+  const h = historyItems.find(x => x.id === id); if (!h) return;
+  audio.src = h.url;
+  $('btn-download').href = h.url;
+  $('track-title').textContent = h.text;
+  $('track-mode').textContent = h.mode;
+  setStatus('success');
+  audio.play().catch(() => {});
+}
+function deleteHistory(id) { historyItems = historyItems.filter(x => x.id !== id); renderHistory(); }
+
+/* ---------------- Misc ---------------- */
+$('demo-toggle').addEventListener('change', e => {
+  demoMode = e.target.checked;
+  toast(demoMode ? 'Demo Mode ON — audio simulated locally (no backend needed)' : 'Demo Mode OFF — requests will go to /api/generate/* endpoints', 'info');
+});
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); activeTab === 'design' ? generateDesign() : generateClone(); }
+});
+
+/* ---------------- Init ---------------- */
+if (window.location.protocol.startsWith('http')) {
+  demoMode = false;
+  $('demo-toggle').checked = false;
+}
+initSliders();
+updateCounters();
+initWave();
+</script>
+</body>
+</html>
