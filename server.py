@@ -227,6 +227,8 @@ async def api_voice_design(req: VoiceDesignRequest):
             speed=req.speed,
             duration=req.duration,
             preprocess_prompt=req.preprocess_prompt,
+            postprocess_output=req.postprocess_output,
+            mode="design"
         )
 
         filename = tts_file_name(req.text, language=req.language or "en")
